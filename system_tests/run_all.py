@@ -130,10 +130,38 @@ def evaluate_expect(expect: dict, result: dict) -> tuple[bool, list[str]]:
     return (len(failures) == 0, failures)
 
 
+def _strip_scenario_path(stdout: str) -> str:
+    # The simulator prints `scenario <path>` once. The path varies across
+    # tempfile invocations even for identical scenarios, so we strip that line
+    # before comparing two runs for determinism (NFR-DET-001).
+    return "\n".join(
+        line for line in stdout.splitlines() if not line.startswith("scenario ")
+    )
+
+
 def determinism_check(sim: Path, scenario_text: str) -> tuple[bool, str]:
-    out1 = run_sim(sim, scenario_text)
-    out2 = run_sim(sim, scenario_text)
-    if out1.stdout == out2.stdout:
+    # Use the same scenario file for both runs to keep all path-dependent
+    # output identical.
+    with tempfile.NamedTemporaryFile(
+        "w", suffix=".scn.txt", delete=False, encoding="utf-8"
+    ) as tf:
+        tf.write(scenario_text)
+        tmp_path = tf.name
+    try:
+        cp1 = subprocess.run(
+            [str(sim), "--scenario", tmp_path],
+            capture_output=True, text=True, timeout=60,
+        )
+        cp2 = subprocess.run(
+            [str(sim), "--scenario", tmp_path],
+            capture_output=True, text=True, timeout=60,
+        )
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+    if _strip_scenario_path(cp1.stdout) == _strip_scenario_path(cp2.stdout):
         return True, ""
     return False, "two runs produced different stdout (NFR-DET-001 violation)"
 

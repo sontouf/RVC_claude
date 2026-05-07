@@ -238,7 +238,11 @@ bool GridWorld::applyDrive(DriveCommand cmd) {
     }
     rx_ = nx;
     ry_ = ny;
-    visited_[ry_ * width_ + rx_] = 1;
+    const std::size_t idx =
+        static_cast<std::size_t>(ry_) * width_ + static_cast<std::size_t>(rx_);
+    if (visited_[idx] == 0) {
+        visited_[idx] = 1;
+    }
     return false;
 }
 
