@@ -15,6 +15,20 @@ else()
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# ---------- Coverage (gcc/clang only) --------------------------------------
+# Enable with -DRVC_COVERAGE=ON. Forces -O0 -g and threads --coverage through
+# all rvc_* libraries and the gtest binaries. Used by CI's `coverage` job to
+# enforce NFR-TEST-001 (>=85% line, >=75% branch).
+option(RVC_COVERAGE "Build with gcov/gcc --coverage instrumentation" OFF)
+if(RVC_COVERAGE)
+    if(MSVC)
+        message(FATAL_ERROR "RVC_COVERAGE requires gcc or clang, not MSVC")
+    endif()
+    message(STATUS "RVC_COVERAGE=ON  (instrumented build, -O0 -g --coverage)")
+    add_compile_options(-O0 -g --coverage -fno-inline)
+    add_link_options(--coverage)
+endif()
+
 # ---------- Layered targets (see arch/design/packages.md) -------------------
 # rvc_ports: header-only port interfaces + value types.
 add_library(rvc_ports INTERFACE)

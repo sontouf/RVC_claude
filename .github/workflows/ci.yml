@@ -91,6 +91,67 @@ jobs:
       - name: Run integration tests
         run: build/tests/rvc_integration_tests --gtest_color=yes
 
+  coverage:
+    # NFR-TEST-001: enforce >=85% line / >=75% branch on src/ + include/rvc/.
+    # Runs in parallel with system_tests (both gate on integration_tests).
+    name: coverage (gcovr >=85% line)
+    needs: [integration_tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build + coverage tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cmake ninja-build g++ python3 python3-pip
+          python3 -m pip install --user --upgrade pip
+          python3 -m pip install --user "gcovr==7.2"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Configure (RVC_COVERAGE=ON, Debug)
+        run: |
+          cmake -S . -B build-cov -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DRVC_BUILD_TESTS=ON \
+            -DRVC_COVERAGE=ON
+
+      - name: Build instrumented binaries
+        run: cmake --build build-cov --parallel
+
+      - name: Run unit tests (instrumented)
+        run: build-cov/tests/rvc_unit_tests --gtest_color=yes
+
+      - name: Run integration tests (instrumented)
+        run: build-cov/tests/rvc_integration_tests --gtest_color=yes
+
+      - name: Generate coverage report and enforce gate
+        run: |
+          mkdir -p reports/coverage
+          gcovr \
+            --root . \
+            --filter 'src/' \
+            --filter 'include/rvc/' \
+            --exclude '_deps/' \
+            --exclude 'tools/' \
+            --exclude 'tests/' \
+            --print-summary \
+            --txt reports/coverage/summary.txt \
+            --xml-pretty --output reports/coverage/cobertura.xml \
+            --html-details reports/coverage/index.html \
+            --fail-under-line 85 \
+            --fail-under-branch 75
+          echo "----- summary -----"
+          cat reports/coverage/summary.txt
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: reports/coverage
+          retention-days: 14
+
   system_tests:
     name: system_tests (simulator, non-GTest)
     needs: [integration_tests]

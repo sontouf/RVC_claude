@@ -137,6 +137,18 @@ TEST(CleaningCoordinator, StopSession_StopsAndPowerOff) {
     EXPECT_GE(fx.actuator.countPower(CleaningPowerLevel::Off), 1);
 }
 
+TEST(CleaningCoordinator, StopIsIdempotent) {
+    // Second stopSession() must not re-emit any actuator commands.
+    Fixture fx;
+    auto c = fx.make();
+    c.startSession();
+    c.stopSession();
+    fx.actuator.clear();
+    c.stopSession();
+    EXPECT_EQ(fx.actuator.log().size(), 0u);
+    EXPECT_EQ(c.sessionState(), SessionState::Stopped);
+}
+
 TEST(CleaningCoordinator, StartIsIdempotent) {
     Fixture fx;
     auto c = fx.make();
@@ -190,6 +202,24 @@ TEST(CleaningCoordinator, Tick_PartialFrontLeftBlocked_TurnsRight) {
     fx.sensor.enqueue(withFlags(true, true, false, false));
     c.tick();
     EXPECT_EQ(fx.actuator.countTurn(Direction::Right), 1);
+}
+
+TEST(CleaningCoordinator, Tick_AvoidingFollowedByClear_ResumesDrivingForward) {
+    // After a partial-avoid turn, if the next sensor read shows no obstacle,
+    // we transition Avoiding -> Driving and emit drive(Forward).
+    Fixture fx;
+    auto c = fx.make();
+    c.startSession();
+
+    fx.sensor.enqueue(withFlags(true, false, false, false));
+    c.tick();
+    ASSERT_EQ(c.phase(), Phase::Avoiding);
+
+    fx.actuator.clear();
+    fx.sensor.enqueue(allClear());
+    c.tick();
+    EXPECT_EQ(c.phase(), Phase::Driving);
+    EXPECT_EQ(fx.actuator.countDrive(DriveCommand::Forward), 1);
 }
 
 TEST(CleaningCoordinator, Tick_TripleBlocked_StopsThenBackward) {

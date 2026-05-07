@@ -31,7 +31,7 @@
 | NFR-DET-001 (Determinism) | `tests/integration/coordinator_grid_integration_test.cpp::DeterministicAcrossTwoRuns`, `system_tests/run_all.py --check-determinism`, ST-018, ST-022, ST-030. |
 | NFR-PERF-001 (≤1 s / 1k tick) | ST-022 (200 tick smoke), ST-030 (500 tick), CI `system_tests` 시간 한도. |
 | NFR-MAINT-001 (SOLID) | DCD `arch/design/class-diagram.md` SOLID 점검 절, `arch/design/packages.md` 의존 방향, `archive-static-analysis-report` 단계. |
-| NFR-TEST-001 (Coverage ≥80% line) | CI `unit_tests` + `integration_tests` 커버리지 아티팩트 (gcovr). |
+| NFR-TEST-001 (Coverage ≥85% line / ≥75% branch, hard gate) | CI `coverage` job: `gcovr --fail-under-line 85 --fail-under-branch 75` over `src/` + `include/rvc/`. Report uploaded as `coverage-report` artifact. |
 | NFR-SYS-001 (≥30 sim cases pos/neg) | `arch/vnv/system-tests.md`, `system_tests/maps/*.json` 32개 (positive 23, negative 9). |
 | NFR-CI-001 (build → unit → integration → system) | `.github/workflows/ci.yml` `needs:` 그래프. |
 | NFR-SAFE-001 (Stopped → no actuator) | `tests/unit/cleaning_coordinator_test.cpp::SessionStopped_NoActuatorCalls`, ST-007/015/023/024/029. |
@@ -45,6 +45,7 @@
 | `tests/unit/cleaning_power_policy_test.cpp` | FR-005 UC-005 | 부스트 타이머 |
 | `tests/unit/cleaning_coordinator_test.cpp` | FR-001..005 UC-001..005, NFR-SAFE-001 | Coordinator 단위 (stub sensor/actuator) |
 | `tests/unit/grid_world_test.cpp` | technical 어댑터 | 시뮬 입력/센서 정합 |
+| `tests/unit/grid_world_loader_test.cpp` | technical 레이어 — loader 에러 분기, 4-heading 회전, power Off/Boosted | NFR-TEST-001 (커버리지 보강) |
 | `tests/unit/sensor_reading_test.cpp` | FR-003 UC-003, FR-004 UC-004 | helpers |
 | `tests/integration/coordinator_grid_integration_test.cpp` | FR-001..005 UC-001..005, NFR-DET-001 | 실제 Grid + Coordinator |
 | `tests/integration/scenario_smoke_test.cpp` | 시뮬 하네스 smoke | malformed 입력 등 |

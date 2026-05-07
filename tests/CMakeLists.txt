@@ -3,6 +3,7 @@ add_executable(rvc_unit_tests
     unit/cleaning_power_policy_test.cpp
     unit/cleaning_coordinator_test.cpp
     unit/grid_world_test.cpp
+    unit/grid_world_loader_test.cpp
     unit/sensor_reading_test.cpp)
 target_link_libraries(rvc_unit_tests PRIVATE rvc_core gtest_main gmock)
 add_test(NAME rvc_unit_tests COMMAND rvc_unit_tests)
