@@ -1,0 +1,342 @@
+You are a senior C++ software engineer.
+
+I want you to implement an RVC(Robotic Vacuum Cleaner) software controller project based on the following requirements.
+
+The project must be implemented as a C++ project with GoogleTest-based unit/system tests and GitHub Actions-based CI/CD.
+
+============================================================
+1. Project Goal
+============================================================
+
+Develop a software controller for an RVC that automatically cleans and mops household surfaces.
+
+The focus is only on the automatic cleaning behavior of the controller.
+Do not implement detailed hardware-level motor control, sensor drivers, or real embedded control logic.
+Instead, abstract hardware-related behavior through interfaces or simulation objects.
+
+The final project should include:
+
+- C++ source code
+- RVC controller logic
+- Sensor/environment abstraction
+- Simulator for system testing
+- GoogleTest-based tests
+- GitHub Actions CI pipeline
+- Clear project structure and build instructions
+
+============================================================
+2. Core Functional Requirements
+============================================================
+
+The RVC controller must support the following behaviors.
+
+[FR-1] Automatic Cleaning
+- The RVC automatically cleans and mops a household surface.
+- When cleaning starts, the RVC enters an automatic cleaning mode.
+- The controller should continuously decide the next action based on sensor/environment input.
+
+[FR-2] Default Movement
+- While cleaning, the RVC moves straight forward by default.
+
+[FR-3] Obstacle Avoidance
+- If the RVC detects an obstacle in front of it:
+  - It stops the current forward movement.
+  - It turns either left or right.
+  - It continues moving forward while cleaning.
+
+[FR-4] Dead-End Handling
+- If obstacles exist in front, left, and right directions:
+  - The RVC moves backward.
+  - Then it turns either left or right.
+  - Then it continues moving forward while cleaning.
+
+[FR-5] Dust Detection
+- If the RVC detects dust:
+  - It temporarily increases cleaning power.
+  - After a short period or a few simulation steps, it returns to normal cleaning power.
+
+[FR-6] Scope Limitation
+- Do not implement detailed hardware control.
+- Do not implement real motor PWM, real sensor protocols, or embedded device drivers.
+- Only model hardware behavior using abstract interfaces, mock objects, or simulator states.
+
+============================================================
+3. Future / Extended Requirements to Consider
+============================================================
+
+The design should be extensible for the following future requirements, even if they are not fully implemented now.
+
+[ER-1] Sensor Extension
+- The RVC may add or change sensors in the future.
+- Design sensor handling with interfaces or modular classes.
+
+[ER-2] Spot Circulation Cleaning
+- The RVC may support cleaning one spot repeatedly for a while.
+- Leave the design open for adding a spot-cleaning behavior or state.
+
+[ER-3] Mobile App Communication
+- The RVC may communicate with a mobile app in the future.
+- Do not implement the mobile app now.
+- But separate controller logic from external command interfaces so that app commands can be added later.
+
+[ER-4] Machine Learning / Inference
+- The RVC may use machine learning or inference for more efficient cleaning in the future.
+- Do not implement ML now.
+- But avoid hard-coding the entire decision logic in a way that prevents future policy replacement.
+
+============================================================
+4. Recommended Architecture
+============================================================
+
+Please design the project using clean, modular C++ architecture.
+
+Use the following components or similar structure.
+
+[Controller Layer]
+- RVCController
+  - Main decision-making class.
+  - Receives sensor/environment state.
+  - Decides the next action.
+  - Maintains current RVC state.
+
+[State / Behavior Layer]
+- Define RVC states such as:
+  - Idle
+  - Cleaning
+  - AvoidingObstacle
+  - MovingBackward
+  - Turning
+  - PowerBoostCleaning
+  - Stopped
+
+- Define actions such as:
+  - StartCleaning
+  - StopCleaning
+  - MoveForward
+  - MoveBackward
+  - TurnLeft
+  - TurnRight
+  - IncreaseCleaningPower
+  - NormalCleaningPower
+
+[Sensor Abstraction Layer]
+- Define an interface or data structure for sensor input:
+  - frontObstacle
+  - leftObstacle
+  - rightObstacle
+  - dustDetected
+
+Example:
+struct SensorData {
+    bool frontObstacle;
+    bool leftObstacle;
+    bool rightObstacle;
+    bool dustDetected;
+};
+
+[Environment / Simulator Layer]
+- Implement a simple grid-based simulator for system tests.
+- The simulator should represent:
+  - RVC position
+  - RVC direction
+  - obstacles
+  - dust cells
+  - cleaned cells
+  - current RVC state
+  - current cleaning power
+
+The simulator should allow the RVC to move one cell per step.
+
+Example grid symbols:
+- R: RVC current position
+- .: empty cell
+- #: obstacle
+- D: dust
+- C: cleaned cell
+
+============================================================
+5. Simulator Requirements for System Testing
+============================================================
+
+Implement a simple simulator environment to validate the full behavior of the RVC controller.
+
+The simulator must support:
+
+[SIM-1] Grid Map
+- A 2D grid map.
+- Obstacles can be placed on the map.
+- Dust can be placed on the map.
+- RVC starts from a given position and direction.
+
+[SIM-2] Step-Based Execution
+- The simulator runs step by step.
+- At each step:
+  1. Sensor data is generated from the current grid state.
+  2. Sensor data is passed to the RVCController.
+  3. The controller returns or applies an action.
+  4. The simulator updates the RVC position, direction, cleaned cells, and cleaning power.
+
+[SIM-3] Scenario-Based System Tests
+- Implement system test scenarios that verify the RVC passes through all important states:
+  - normal forward cleaning
+  - obstacle detection
+  - left/right turning
+  - dead-end handling
+  - backward movement
+  - dust detection
+  - temporary cleaning power boost
+  - return to normal cleaning power
+
+[SIM-4] Visual Output
+- The simulator should print the grid state to the console for each step or for selected steps.
+- The output should allow the user to visually confirm:
+  - RVC location
+  - RVC direction
+  - obstacles
+  - dust
+  - cleaned cells
+  - RVC current state
+  - cleaning power level
+
+A simple console-based visualization is enough.
+No complex GUI is required unless it can be added simply.
+
+============================================================
+6. Testing Requirements
+============================================================
+
+Use GoogleTest.
+
+Implement both unit tests and system tests.
+
+[Unit Tests]
+Write tests for:
+- Initial controller state
+- Start cleaning behavior
+- Stop cleaning behavior
+- Default forward movement
+- Front obstacle avoidance
+- Left/right obstacle decision
+- Dead-end behavior
+- Dust detection and power boost
+- Return from power boost to normal cleaning
+
+[System Tests]
+Write scenario-based simulator tests for:
+- Open area cleaning scenario
+- Single obstacle avoidance scenario
+- Dead-end escape scenario
+- Dust cleaning scenario
+- Mixed map scenario containing obstacles and dust
+
+Each system test should check:
+- The RVC does not move into obstacles.
+- The RVC continues cleaning after avoiding obstacles.
+- The RVC boosts cleaning power when dust is detected.
+- The RVC eventually returns to normal cleaning power.
+- The RVC visits expected states during the scenario.
+
+============================================================
+7. CI/CD Requirements
+============================================================
+
+Initialize the root folder as a Git repository-ready project.
+
+Add GitHub Actions workflow for CI.
+
+The CI pipeline should:
+
+1. Check out the repository.
+2. Install required build tools if necessary.
+3. Configure the CMake project.
+4. Build the project.
+5. Run all GoogleTest tests.
+6. Fail the workflow if any test fails.
+
+Use CMake as the build system.
+
+Recommended commands:
+
+mkdir -p build
+cd build
+cmake ..
+cmake --build .
+ctest --output-on-failure
+
+============================================================
+8. Suggested Project Structure
+============================================================
+
+Please create a clean project structure similar to the following:
+
+rvc-controller/
+├── CMakeLists.txt
+├── README.md
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── include/
+│   ├── RVCController.h
+│   ├── SensorData.h
+│   ├── RVCState.h
+│   ├── RVCAction.h
+│   └── Simulator.h
+├── src/
+│   ├── RVCController.cpp
+│   └── Simulator.cpp
+├── tests/
+│   ├── test_controller.cpp
+│   └── test_simulator_system.cpp
+└── app/
+    └── main.cpp
+
+============================================================
+9. Implementation Style Requirements
+============================================================
+
+Please follow these implementation rules.
+
+- Use modern C++17 or later.
+- Keep controller logic independent from simulator logic.
+- Avoid hard-coded behavior that prevents future extension.
+- Use enums for states, actions, directions, and cleaning power modes.
+- Use clear class and function names.
+- Keep each class responsible for one main role.
+- Add comments only where they clarify non-obvious logic.
+- Make the code readable and maintainable.
+- Do not over-engineer the project.
+
+============================================================
+10. Expected Deliverables
+============================================================
+
+Please generate the full working project.
+
+The final result should include:
+
+1. C++ implementation of the RVC controller.
+2. Grid-based simulator.
+3. GoogleTest unit tests.
+4. GoogleTest system tests using simulator scenarios.
+5. GitHub Actions CI workflow.
+6. README.md explaining:
+   - project overview
+   - requirements
+   - build command
+   - test command
+   - simulator execution command
+   - project structure
+
+============================================================
+11. Acceptance Criteria
+============================================================
+
+The implementation is complete only if all of the following are satisfied.
+
+- The project builds successfully with CMake.
+- All GoogleTest tests pass.
+- The simulator can be executed from the command line.
+- The simulator shows the RVC position, state, obstacles, dust, and cleaned cells.
+- The system tests validate the main automatic cleaning scenarios.
+- The design clearly separates controller logic from simulator/environment logic.
+- GitHub Actions CI runs build and tests automatically.

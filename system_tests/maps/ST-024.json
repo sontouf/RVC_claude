@@ -1,0 +1,38 @@
+{
+  "id": "ST-024",
+  "title": "max_backoff_ticks=0 - no backward attempts means no collisions",
+  "type": "negative",
+  "trace": [
+    "FR-004",
+    "UC-004",
+    "NFR-SAFE-001"
+  ],
+  "scenario": {
+    "width": 3,
+    "height": 3,
+    "robot": {
+      "x": 1,
+      "y": 1,
+      "heading": "N"
+    },
+    "config": {
+      "dust_boost_ticks": 5,
+      "max_backoff_ticks": 0
+    },
+    "max_ticks": 10,
+    "walls": [
+      "###",
+      "#.#",
+      "###"
+    ],
+    "dust": [
+      "...",
+      "...",
+      "..."
+    ]
+  },
+  "expect": {
+    "no_collisions": true,
+    "session_running": true
+  }
+}

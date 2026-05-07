@@ -1,0 +1,48 @@
+{
+  "id": "ST-031",
+  "title": "Maze with multiple triple-block dead-ends - safe and deterministic",
+  "type": "negative",
+  "trace": [
+    "FR-003",
+    "FR-004",
+    "UC-003",
+    "UC-004",
+    "NFR-SAFE-001"
+  ],
+  "scenario": {
+    "width": 7,
+    "height": 7,
+    "robot": {
+      "x": 1,
+      "y": 5,
+      "heading": "N"
+    },
+    "config": {
+      "dust_boost_ticks": 5,
+      "max_backoff_ticks": 4
+    },
+    "max_ticks": 200,
+    "walls": [
+      "#######",
+      "#.....#",
+      "#.###.#",
+      "#...#.#",
+      "###.#.#",
+      "#.....#",
+      "#######"
+    ],
+    "dust": [
+      ".......",
+      ".......",
+      ".......",
+      ".......",
+      ".......",
+      ".......",
+      "......."
+    ]
+  },
+  "expect": {
+    "no_collisions": true,
+    "session_running": true
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "id": "ST-015",
+  "title": "Long 1-wide corridor with closed top oscillates safely",
+  "type": "positive",
+  "trace": [
+    "FR-004",
+    "UC-004"
+  ],
+  "scenario": {
+    "width": 3,
+    "height": 8,
+    "robot": {
+      "x": 1,
+      "y": 6,
+      "heading": "N"
+    },
+    "config": {
+      "dust_boost_ticks": 5,
+      "max_backoff_ticks": 4
+    },
+    "max_ticks": 40,
+    "walls": [
+      "###",
+      "#.#",
+      "#.#",
+      "#.#",
+      "#.#",
+      "#.#",
+      "#.#",
+      "###"
+    ],
+    "dust": [
+      "...",
+      "...",
+      "...",
+      "...",
+      "...",
+      "...",
+      "...",
+      "..."
+    ]
+  },
+  "expect": {
+    "no_collisions": true,
+    "session_running": true
+  }
+}

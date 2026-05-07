@@ -1,0 +1,52 @@
+{
+  "id": "ST-022",
+  "title": "Long-run cleaning in 9x9 open grid",
+  "type": "positive",
+  "trace": [
+    "FR-001",
+    "UC-002",
+    "NFR-PERF-001",
+    "NFR-DET-001"
+  ],
+  "scenario": {
+    "width": 9,
+    "height": 9,
+    "robot": {
+      "x": 4,
+      "y": 4,
+      "heading": "N"
+    },
+    "config": {
+      "dust_boost_ticks": 5,
+      "max_backoff_ticks": 4
+    },
+    "max_ticks": 200,
+    "walls": [
+      "#########",
+      "#.......#",
+      "#.......#",
+      "#.......#",
+      "#.......#",
+      "#.......#",
+      "#.......#",
+      "#.......#",
+      "#########"
+    ],
+    "dust": [
+      ".........",
+      ".........",
+      ".........",
+      ".........",
+      ".........",
+      ".........",
+      ".........",
+      ".........",
+      "........."
+    ]
+  },
+  "expect": {
+    "no_collisions": true,
+    "min_cleaned_ratio": 0.3,
+    "session_running": true
+  }
+}

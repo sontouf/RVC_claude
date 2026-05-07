@@ -1,0 +1,45 @@
+{
+  "id": "ST-028",
+  "title": "Single-tick session emits one decision and remains running",
+  "type": "negative",
+  "trace": [
+    "FR-001",
+    "FR-002",
+    "UC-001",
+    "UC-002"
+  ],
+  "scenario": {
+    "width": 5,
+    "height": 5,
+    "robot": {
+      "x": 2,
+      "y": 2,
+      "heading": "N"
+    },
+    "config": {
+      "dust_boost_ticks": 5,
+      "max_backoff_ticks": 4
+    },
+    "max_ticks": 1,
+    "walls": [
+      "#####",
+      "#...#",
+      "#...#",
+      "#...#",
+      "#####"
+    ],
+    "dust": [
+      ".....",
+      ".....",
+      ".....",
+      ".....",
+      "....."
+    ]
+  },
+  "expect": {
+    "no_collisions": true,
+    "session_running": true,
+    "max_total_ticks": 1,
+    "min_total_ticks": 1
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "id": "ST-030",
+  "title": "Long oscillation in vertical dead-end remains safe",
+  "type": "negative",
+  "trace": [
+    "FR-004",
+    "UC-004",
+    "NFR-DET-001",
+    "NFR-PERF-001"
+  ],
+  "scenario": {
+    "width": 3,
+    "height": 5,
+    "robot": {
+      "x": 1,
+      "y": 1,
+      "heading": "N"
+    },
+    "config": {
+      "dust_boost_ticks": 5,
+      "max_backoff_ticks": 4
+    },
+    "max_ticks": 500,
+    "walls": [
+      "###",
+      "#.#",
+      "#.#",
+      "#.#",
+      "###"
+    ],
+    "dust": [
+      "...",
+      "...",
+      "...",
+      "...",
+      "..."
+    ]
+  },
+  "expect": {
+    "no_collisions": true,
+    "session_running": true,
+    "min_total_ticks": 500,
+    "max_total_ticks": 500
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "ST-014",
+  "title": "Navigates a corridor with a center block",
+  "type": "positive",
+  "trace": [
+    "FR-001",
+    "FR-003",
+    "UC-002",
+    "UC-003"
+  ],
+  "scenario": {
+    "width": 7,
+    "height": 5,
+    "robot": {
+      "x": 1,
+      "y": 2,
+      "heading": "E"
+    },
+    "config": {
+      "dust_boost_ticks": 5,
+      "max_backoff_ticks": 4
+    },
+    "max_ticks": 80,
+    "walls": [
+      "#######",
+      "#.....#",
+      "#.###.#",
+      "#.....#",
+      "#######"
+    ],
+    "dust": [
+      ".......",
+      ".......",
+      ".......",
+      ".......",
+      "......."
+    ]
+  },
+  "expect": {
+    "no_collisions": true,
+    "min_cleaned_cells": 4,
+    "session_running": true
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "id": "ST-007",
+  "title": "Triple-blocked dead-end safely backs off (oscillation)",
+  "type": "positive",
+  "trace": [
+    "FR-004",
+    "UC-004",
+    "NFR-SAFE-001"
+  ],
+  "scenario": {
+    "width": 3,
+    "height": 6,
+    "robot": {
+      "x": 1,
+      "y": 1,
+      "heading": "N"
+    },
+    "config": {
+      "dust_boost_ticks": 5,
+      "max_backoff_ticks": 4
+    },
+    "max_ticks": 30,
+    "walls": [
+      "###",
+      "#.#",
+      "#.#",
+      "#.#",
+      "#.#",
+      "###"
+    ],
+    "dust": [
+      "...",
+      "...",
+      "...",
+      "...",
+      "...",
+      "..."
+    ]
+  },
+  "expect": {
+    "no_collisions": true,
+    "session_running": true,
+    "max_total_ticks": 30
+  }
+}

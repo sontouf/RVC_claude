@@ -1,0 +1,44 @@
+{
+  "id": "ST-012",
+  "title": "No dust ever - power stays Nominal",
+  "type": "positive",
+  "trace": [
+    "FR-001",
+    "UC-002",
+    "FR-005",
+    "UC-005"
+  ],
+  "scenario": {
+    "width": 5,
+    "height": 5,
+    "robot": {
+      "x": 1,
+      "y": 1,
+      "heading": "N"
+    },
+    "config": {
+      "dust_boost_ticks": 5,
+      "max_backoff_ticks": 4
+    },
+    "max_ticks": 20,
+    "walls": [
+      "#####",
+      "#...#",
+      "#...#",
+      "#...#",
+      "#####"
+    ],
+    "dust": [
+      ".....",
+      ".....",
+      ".....",
+      ".....",
+      "....."
+    ]
+  },
+  "expect": {
+    "no_collisions": true,
+    "last_power": "Nominal",
+    "session_running": true
+  }
+}
