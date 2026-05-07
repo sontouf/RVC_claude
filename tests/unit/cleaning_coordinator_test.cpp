@@ -256,6 +256,102 @@ TEST(CleaningCoordinator, Tick_EscapeStillBlocked_KeepsBackingOffWithinBudget) {
     EXPECT_EQ(c.phase(), Phase::Escaping);
 }
 
+TEST(CleaningCoordinator, Tick_EscapeFrontOnlyOpens_KeepsBackingOff_NoForward) {
+    // FR-004 (revised): once in Escaping, front-only-open is NOT an exit.
+    // The robot must keep backing off (until L or R opens) and must NOT
+    // emit drive(Forward), because resuming forward would re-enter the
+    // same trap we just escaped from.
+    Fixture fx;
+    fx.config.maxBackoffTicks = 3;
+    auto c = fx.make();
+    c.startSession();
+    fx.actuator.clear();
+
+    fx.sensor.enqueue(withFlags(true, true, true, false));
+    c.tick();
+    ASSERT_EQ(c.phase(), Phase::Escaping);
+
+    fx.actuator.clear();
+    fx.sensor.enqueue(withFlags(false, true, true, false));  // F open, L+R blocked
+    c.tick();
+
+    EXPECT_EQ(c.phase(), Phase::Escaping)
+        << "front-only-open must not exit Escaping";
+    EXPECT_EQ(fx.actuator.countDrive(DriveCommand::Backward), 1);
+    EXPECT_EQ(fx.actuator.countDrive(DriveCommand::Forward), 0)
+        << "no forward command after backoff while sides remain blocked";
+    EXPECT_EQ(fx.actuator.countTurn(Direction::Left), 0);
+    EXPECT_EQ(fx.actuator.countTurn(Direction::Right), 0);
+}
+
+TEST(CleaningCoordinator, Tick_EscapeSideOpens_TurnsAndDoesNotDriveThisTick) {
+    // FR-004 (revised): when L or R opens, the Coordinator turns this tick
+    // but does NOT also emit drive(Forward). The next tick will read sensors
+    // with the new heading and a normal driving cycle will choose the move.
+    Fixture fx;
+    fx.config.maxBackoffTicks = 4;
+    auto c = fx.make();
+    c.startSession();
+    fx.actuator.clear();
+
+    fx.sensor.enqueue(withFlags(true, true, true, false));
+    c.tick();
+    ASSERT_EQ(c.phase(), Phase::Escaping);
+
+    fx.actuator.clear();
+    fx.sensor.enqueue(withFlags(false, true, false, false));  // only R open
+    c.tick();
+
+    EXPECT_EQ(c.phase(), Phase::Driving);
+    EXPECT_EQ(fx.actuator.countTurn(Direction::Right), 1);
+    EXPECT_EQ(fx.actuator.countDrive(DriveCommand::Forward), 0)
+        << "must NOT also drive forward on the same tick we exit Escape";
+    EXPECT_EQ(fx.actuator.countDrive(DriveCommand::Backward), 0);
+}
+
+TEST(CleaningCoordinator, Tick_EscapeAllOpenAfterBackoff_StillTurnsLeft_NoForward) {
+    // FR-004 (revised) + FR-003: even if all three sensors clear after
+    // backing up, we still turn (left preference) instead of driving forward
+    // straight back into the trap.
+    Fixture fx;
+    auto c = fx.make();
+    c.startSession();
+    fx.actuator.clear();
+
+    fx.sensor.enqueue(withFlags(true, true, true, false));
+    c.tick();
+    ASSERT_EQ(c.phase(), Phase::Escaping);
+
+    fx.actuator.clear();
+    fx.sensor.enqueue(withFlags(false, false, false, false));  // all open
+    c.tick();
+
+    EXPECT_EQ(c.phase(), Phase::Driving);
+    EXPECT_EQ(fx.actuator.countTurn(Direction::Left), 1);
+    EXPECT_EQ(fx.actuator.countDrive(DriveCommand::Forward), 0);
+}
+
+TEST(CleaningCoordinator, Tick_EscapeBackoffZero_StaysStopped_NeverForward) {
+    // FR-004 (revised) + ST-024 invariant: maxBackoffTicks=0 means "no backoff
+    // attempts at all". The robot stops and stays in Escape; it must never
+    // emit drive(Backward) nor drive(Forward) until a side actually opens.
+    Fixture fx;
+    fx.config.maxBackoffTicks = 0;
+    auto c = fx.make();
+    c.startSession();
+    fx.actuator.clear();
+
+    for (int i = 0; i < 4; ++i) {
+        fx.sensor.enqueue(withFlags(true, true, true, false));
+        c.tick();
+    }
+
+    EXPECT_EQ(c.phase(), Phase::Escaping);
+    EXPECT_EQ(fx.actuator.countDrive(DriveCommand::Backward), 0);
+    EXPECT_EQ(fx.actuator.countDrive(DriveCommand::Forward), 0);
+    EXPECT_GE(fx.actuator.countDrive(DriveCommand::Stop), 1);
+}
+
 TEST(CleaningCoordinator, Tick_DustDetected_BoostsPowerForBoundedDuration) {
     Fixture fx;
     fx.config.dustBoostTicks = 2;

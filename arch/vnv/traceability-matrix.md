@@ -32,7 +32,7 @@
 | NFR-PERF-001 (≤1 s / 1k tick) | ST-022 (200 tick smoke), ST-030 (500 tick), CI `system_tests` 시간 한도. |
 | NFR-MAINT-001 (SOLID) | DCD `arch/design/class-diagram.md` SOLID 점검 절, `arch/design/packages.md` 의존 방향, `archive-static-analysis-report` 단계. |
 | NFR-TEST-001 (Coverage ≥80% line) | CI `unit_tests` + `integration_tests` 커버리지 아티팩트 (gcovr). |
-| NFR-SYS-001 (≥30 sim cases pos/neg) | `arch/vnv/system-tests.md`, `system_tests/maps/*.json` 31개. |
+| NFR-SYS-001 (≥30 sim cases pos/neg) | `arch/vnv/system-tests.md`, `system_tests/maps/*.json` 32개 (positive 23, negative 9). |
 | NFR-CI-001 (build → unit → integration → system) | `.github/workflows/ci.yml` `needs:` 그래프. |
 | NFR-SAFE-001 (Stopped → no actuator) | `tests/unit/cleaning_coordinator_test.cpp::SessionStopped_NoActuatorCalls`, ST-007/015/023/024/029. |
 | NFR-REPRO-001 (LLM 교체 재현성) | 본 RTM + `reproducibility` RULE + `bootstrap-context` 컨텍스트 번들. |
@@ -84,6 +84,7 @@
 | ST-029 | negative | FR-002, UC-001, NFR-SAFE-001 |
 | ST-030 | negative | FR-004, UC-004, NFR-DET-001, NFR-PERF-001 |
 | ST-031 | negative | FR-003, FR-004, UC-003, UC-004, NFR-SAFE-001 |
+| ST-032 | positive | FR-004, UC-004, NFR-SAFE-001 |
 
 본 §5는 `system_tests/maps/ST-*.json` 의 `trace` 배열과 **bit-identical**이어야 한다 (RULE: `system-test`).
 

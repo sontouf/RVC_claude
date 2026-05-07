@@ -81,18 +81,23 @@ void CleaningCoordinator::tick() {
 
     // Phase transition is fully owned here.
     if (phase_ == Phase::Escaping) {
-        // We backed off last tick; check if a side is open now.
-        if (!tripleBlocked(reading)) {
+        // FR-004: exit predicate is "L or R is open". Front-only-open is NOT
+        // an exit, because resuming forward would re-enter the same trap we
+        // just backed away from. We keep backing off until a side opens
+        // (or until the maxBackoffTicks safety cap is reached).
+        const bool sideOpen = !reading.left || !reading.right;
+        if (sideOpen) {
             const EscapeAssist assist = nav_.plan_escape_enclosure(reading);
             if (assist.turn != TurnCommand::None) {
                 actuator_.turn(toDirection(assist.turn));
             }
             phase_ = Phase::Driving;
             backoffRemaining_ = 0;
-            // Forward will resume next tick when no obstacle is reported.
+            // No drive(Forward) this tick: the next tick re-reads sensors
+            // with the new heading and a normal driving cycle takes over.
             return;
         }
-        // Still triple-blocked → keep backing off until budget exhausted.
+        // Both sides still blocked → keep backing off until budget exhausted.
         if (backoffRemaining_ > 0) {
             --backoffRemaining_;
             actuator_.drive(DriveCommand::Backward);

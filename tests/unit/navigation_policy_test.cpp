@@ -58,26 +58,34 @@ TEST(DefaultNavigationPolicy, TripleBlocked_ReturnsStopForCoordinator) {
     EXPECT_EQ(d.turn, TurnCommand::None);
 }
 
-TEST(DefaultNavigationPolicy, EscapeAssist_BothOpen_PrefersLeft) {
+TEST(DefaultNavigationPolicy, EscapeAssist_AlwaysCommitsToASide) {
+    // FR-004 (revised): when the Coordinator's escape-exit predicate fires
+    // (L or R open), this helper must always commit to a side — never
+    // TurnCommand::None — so that the next driving tick does not advance
+    // the robot back into the trap it just escaped from. Left preference
+    // (FR-003) applies when both sides are open.
     DefaultNavigationPolicy nav;
     SensorReading r{};
-    r.front = false; r.left = false; r.right = false;
-    auto a = nav.plan_escape_enclosure(r);
-    EXPECT_EQ(a.turn, TurnCommand::None);
 
-    r.left = true;  // only right open
+    r.front = false; r.left = false; r.right = false;  // all open
+    auto a = nav.plan_escape_enclosure(r);
+    EXPECT_EQ(a.turn, TurnCommand::Left);  // FR-003 deterministic, NOT None
+
+    r.front = false; r.left = true;  r.right = false;  // only right open
     a = nav.plan_escape_enclosure(r);
     EXPECT_EQ(a.turn, TurnCommand::Right);
 
-    r.left = false; r.right = true;  // only left open
+    r.front = false; r.left = false; r.right = true;   // only left open
     a = nav.plan_escape_enclosure(r);
     EXPECT_EQ(a.turn, TurnCommand::Left);
 
-    r.left = false; r.right = false;  // both open after backoff
-    a = nav.plan_escape_enclosure(r);
-    EXPECT_EQ(a.turn, TurnCommand::None);  // no turn — keep heading
-
-    r.front = true; r.left = false; r.right = false;
+    r.front = true;  r.left = false; r.right = false;  // F blocked, both sides open
     a = nav.plan_escape_enclosure(r);
     EXPECT_EQ(a.turn, TurnCommand::Left);  // FR-003 deterministic
+
+    // Defensive: both sides blocked — Coordinator's predicate prevents this
+    // call in normal flow, but the helper must not assert; returns None.
+    r.front = false; r.left = true;  r.right = true;
+    a = nav.plan_escape_enclosure(r);
+    EXPECT_EQ(a.turn, TurnCommand::None);
 }

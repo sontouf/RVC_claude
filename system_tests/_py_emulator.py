@@ -170,8 +170,9 @@ def navigation_next_drive(reading):
 
 
 def navigation_plan_escape(reading):
-    if not reading["front"] and not reading["left"] and not reading["right"]:
-        return TURN_NONE
+    # FR-004: helper is invoked only on escape exit (Coordinator's predicate
+    # guarantees L or R is open). Always pick a side (left preference, FR-003)
+    # so the next tick does not re-enter the trap.
     return navigation_choose_side(reading)
 
 
@@ -217,8 +218,10 @@ class Coordinator:
         self.world.apply_power(level)
 
         if self.phase == PHASE_ESCAPING:
-            triple = reading["front"] and reading["left"] and reading["right"]
-            if not triple:
+            # FR-004: exit predicate is "L or R open". Front-only-open is NOT
+            # an exit because resuming forward would re-enter the same trap.
+            side_open = (not reading["left"]) or (not reading["right"])
+            if side_open:
                 turn = navigation_plan_escape(reading)
                 if turn != TURN_NONE:
                     self.world.apply_turn(to_direction(turn))

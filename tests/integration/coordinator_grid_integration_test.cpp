@@ -17,6 +17,7 @@ using rvc::app::ControllerConfig;
 using rvc::domain::DefaultCleaningPowerPolicy;
 using rvc::domain::DefaultNavigationPolicy;
 using rvc::ports::Heading;
+using rvc::ports::Phase;
 using rvc::ports::SessionState;
 using rvc::tech::GridActuator;
 using rvc::tech::GridSensor;
@@ -78,12 +79,14 @@ TEST(CoordinatorGridIntegration, CleansMostOfOpenSpaceWithinBudget) {
 }
 
 TEST(CoordinatorGridIntegration, EscapesTripleBlockedDeadEnd) {
-    // Dead-end pocket: robot at (1,1) facing N inside a 1-wide corridor that
-    // ends at the top. After bumping the wall, partial-avoid will turn it,
-    // and an enclosure case is exercised in the next test.
+    // 1-wide vertical dead-end (3x5). Robot at (1,3,N) drives up, hits the
+    // closed top at (1,1), enters Escape, backs off within the budget, then
+    // halts safely (FR-004 revised: backoff exits only when L or R opens;
+    // since L/R never open in a 1-wide corridor, the safety cap holds the
+    // robot at rest without re-entering the trap or bumping the back wall).
     const char* deadEnd =
         "width 3\nheight 5\nrobot 1 3 N\nmax_ticks 30\n"
-        "config dust_boost_ticks 5\nconfig max_backoff_ticks 4\n"
+        "config dust_boost_ticks 5\nconfig max_backoff_ticks 2\n"
         "walls\n###\n#.#\n#.#\n#.#\n###\n"
         "dust\n...\n...\n...\n...\n...\nend\n";
     GridWorld world;
@@ -96,12 +99,13 @@ TEST(CoordinatorGridIntegration, EscapesTripleBlockedDeadEnd) {
     DefaultCleaningPowerPolicy power(world.config().dustBoostTicks);
     ControllerConfig cfg;
     cfg.dustBoostTicks = 5;
-    cfg.maxBackoffTicks = 4;
+    cfg.maxBackoffTicks = 2;
     CleaningCoordinator c(s, a, nav, power, cfg);
 
     c.startSession();
     for (int t = 0; t < 30; ++t) c.tick();
     EXPECT_EQ(world.collisions(), 0u);
+    EXPECT_EQ(c.phase(), Phase::Escaping);
 }
 
 TEST(CoordinatorGridIntegration, DustCellTriggersBoostAndAutoReturn) {

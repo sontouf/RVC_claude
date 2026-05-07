@@ -52,12 +52,12 @@ DriveDecision DefaultNavigationPolicy::nextDriveCommand(
 EscapeAssist DefaultNavigationPolicy::plan_escape_enclosure(
     const SensorReading& reading) {
     EscapeAssist a{};
-    if (!reading.front && !reading.left && !reading.right) {
-        // Fully open after backoff: continue forward via Coordinator
-        // (no turn needed).
-        a.turn = TurnCommand::None;
-        return a;
-    }
+    // FR-004: the Coordinator only calls this on escape exit, which per its
+    // predicate (L or R open) guarantees at least one side is open. We always
+    // commit to a side turn (left preference, FR-003) so the next driving
+    // tick does NOT advance back into the trap we just escaped from. If both
+    // sides happen to be blocked (defensive path), return None — the
+    // Coordinator will keep the robot in Escaping.
     a.turn = chooseSide(reading);
     return a;
 }
