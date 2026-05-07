@@ -52,6 +52,19 @@ python3 system_tests/run_all.py --sim ./build/rvc_sim --check-determinism
 
 `cmake --build` 는 `FetchContent`로 GoogleTest v1.14.0을 가져온다. 인터넷이 없으면 `-DRVC_BUILD_TESTS=OFF`로 코어/시뮬만 빌드 가능.
 
+## GUI 시뮬레이터 (저작·디버깅용)
+
+직접 맵을 그려 가며 실행해 보고 싶으면 [`tools/rvc_gui.py`](tools/rvc_gui.py)를 사용한다. Python 표준 라이브러리(Tkinter)만 쓰므로 추가 설치가 필요 없다.
+
+```powershell
+python tools\rvc_gui.py                              # 빈 7x7 맵으로 시작
+python tools\rvc_gui.py system_tests\maps\ST-014.json  # 기존 시나리오 열기
+```
+
+좌클릭=칠하기, 우클릭=지우기, 도구는 우측 패널에서 `Wall / Floor / Dust / Robot` 중 선택. `Start / Pause / Step / Reset` 버튼으로 틱 단위 시뮬레이션, `Save JSON ...`으로 `system_tests/maps/`에 그대로 저장 가능. 컨트롤러 동작은 `system_tests/_py_emulator.py`(C++ `rvc_sim`을 1:1 미러링)를 그대로 사용하므로, 여기서 PASS한 맵은 그대로 CI의 C++ 시스템 테스트로 추가할 수 있다.
+
+> 주의: GUI는 **저작·디버깅 보조 도구**다. CI/RTM의 권위 있는 시스템 테스트는 항상 컴파일된 C++ `rvc_sim` 바이너리로 실행된다 (NFR-CI-001).
+
 ## CI/CD (GitHub Actions)
 
 [.github/workflows/ci.yml](.github/workflows/ci.yml)는 `build → unit_tests → integration_tests → system_tests` 순으로 `needs:`가 연결되어 있어 앞 단계 실패 시 이후 단계가 실행되지 않는다 (NFR-CI-001).
